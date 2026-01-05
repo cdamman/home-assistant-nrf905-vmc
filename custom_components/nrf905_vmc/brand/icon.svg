@@ -1,0 +1,74 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#43a5ff"/>
+      <stop offset="1" stop-color="#1666cc"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e9f1ff"/>
+    </linearGradient>
+    <linearGradient id="pcb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#25a56d"/>
+      <stop offset="1" stop-color="#178a56"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bg)"/>
+
+  <!-- ===== VMC unit (upper right) ===== -->
+  <g fill="#cfe0fb">
+    <rect x="300" y="80" width="26" height="46" rx="11"/>
+    <rect x="340" y="80" width="26" height="46" rx="11"/>
+    <rect x="380" y="80" width="26" height="46" rx="11"/>
+  </g>
+  <g fill="#f2f7ff">
+    <ellipse cx="313" cy="80" rx="13" ry="5"/>
+    <ellipse cx="353" cy="80" rx="13" ry="5"/>
+    <ellipse cx="393" cy="80" rx="13" ry="5"/>
+  </g>
+  <rect x="286" y="110" width="150" height="140" rx="22" fill="url(#body)"/>
+  <line x1="286" y1="150" x2="436" y2="150" stroke="#d7e4fb" stroke-width="4"/>
+  <circle cx="414" cy="132" r="7" fill="#38c172"/>
+  <g fill="#1666cc">
+    <polygon points="346,168 330,192 362,192"/>
+    <rect x="338" y="190" width="16" height="52" rx="7"/>
+    <rect x="370" y="168" width="16" height="52" rx="7"/>
+    <polygon points="378,244 362,220 394,220"/>
+  </g>
+
+  <!-- ===== radio waves (module -> VMC) ===== -->
+  <g fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round">
+    <path d="M241.2 257.0 A44 44 0 0 1 275.0 290.9"/>
+    <path d="M246.1 233.5 A68 68 0 0 1 298.5 285.9"/>
+    <path d="M251.1 210.0 A92 92 0 0 1 322.0 280.9"/>
+  </g>
+
+  <!-- ===== nRF905 module (lower left) ===== -->
+  <rect x="64" y="286" width="180" height="132" rx="16" fill="url(#pcb)"/>
+  <rect x="64" y="286" width="180" height="132" rx="16" fill="none" stroke="#0f6f43" stroke-width="3"/>
+
+  <!-- meander PCB antenna -->
+  <polyline points="150,306 158,296 166,306 174,296 182,306 190,296 198,306 206,296 214,306 222,296 228,306"
+            fill="none" stroke="#eafff5" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- RF chip -->
+  <rect x="92" y="322" width="56" height="56" rx="8" fill="#12303f"/>
+  <circle cx="104" cy="334" r="5" fill="#eafff5"/>
+  <g fill="#cfd8e0">
+    <rect x="84" y="332" width="8" height="7" rx="2"/>
+    <rect x="84" y="346" width="8" height="7" rx="2"/>
+    <rect x="84" y="360" width="8" height="7" rx="2"/>
+    <rect x="148" y="332" width="8" height="7" rx="2"/>
+    <rect x="148" y="346" width="8" height="7" rx="2"/>
+    <rect x="148" y="360" width="8" height="7" rx="2"/>
+  </g>
+
+  <!-- pin header -->
+  <g fill="#f4c430">
+    <rect x="86" y="400" width="14" height="14" rx="3"/>
+    <rect x="110" y="400" width="14" height="14" rx="3"/>
+    <rect x="134" y="400" width="14" height="14" rx="3"/>
+    <rect x="158" y="400" width="14" height="14" rx="3"/>
+  </g>
+</svg>
