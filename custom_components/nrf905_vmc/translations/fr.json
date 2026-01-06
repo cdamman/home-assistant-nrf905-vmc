@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "nRF905 VMC",
+        "description": "Saisissez l'adresse IP et les identifiants de votre contrôleur de ventilation.",
+        "data": {
+          "host": "Adresse IP",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer nRF905 VMC",
+        "description": "Modifiez l'adresse IP et/ou les identifiants de cet appareil.",
+        "data": {
+          "host": "Adresse IP",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Ré-authentifier nRF905 VMC",
+        "description": "L'appareil a rejeté les identifiants actuels. Veuillez les saisir à nouveau.",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter à l'appareil.",
+      "invalid_auth": "Nom d'utilisateur ou mot de passe incorrect.",
+      "unknown": "Erreur inattendue."
+    },
+    "abort": {
+      "already_configured": "Cet appareil est déjà configuré.",
+      "reauth_successful": "La ré-authentification a réussi.",
+      "reconfigure_successful": "La reconfiguration a réussi."
+    }
+  },
+  "entity": {
+    "number": {
+      "timer_duration": {
+        "name": "Durée du minuteur"
+      }
+    }
+  }
+}

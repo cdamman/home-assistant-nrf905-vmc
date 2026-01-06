@@ -1,0 +1,119 @@
+"""Config flow for nRF905 VMC (setup, reconfigure and reauth)."""
+
+from __future__ import annotations
+
+import logging
+from collections.abc import Mapping
+from typing import Any
+
+import voluptuous as vol
+
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .api import Nrf905Api, Nrf905ApiError, Nrf905AuthError
+from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
+
+STEP_USER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_HOST): str,
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+    }
+)
+
+STEP_REAUTH_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+    }
+)
+
+
+class Nrf905ConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Handle the configuration flow."""
+
+    VERSION = 1
+
+    async def _validate(self, data: Mapping[str, Any]) -> dict[str, str]:
+        """Try to reach the device; return an errors dict (empty on success)."""
+        errors: dict[str, str] = {}
+        session = async_get_clientsession(self.hass)
+        api = Nrf905Api(
+            session, data[CONF_HOST], data[CONF_USERNAME], data[CONF_PASSWORD]
+        )
+        try:
+            await api.async_get_status()
+        except Nrf905AuthError:
+            errors["base"] = "invalid_auth"
+        except Nrf905ApiError:
+            errors["base"] = "cannot_connect"
+        except Exception:  # noqa: BLE001
+            _LOGGER.exception("Unexpected error validating nRF905 VMC")
+            errors["base"] = "unknown"
+        return errors
+
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            await self.async_set_unique_id(user_input[CONF_HOST])
+            self._abort_if_unique_id_configured()
+            errors = await self._validate(user_input)
+            if not errors:
+                return self.async_create_entry(
+                    title=f"VMC {user_input[CONF_HOST]}", data=user_input
+                )
+        return self.async_show_form(
+            step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change IP address and/or credentials of an existing device."""
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            errors = await self._validate(user_input)
+            if not errors:
+                return self.async_update_reload_and_abort(
+                    entry, data_updates=user_input
+                )
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_USER_SCHEMA, user_input or entry.data
+            ),
+            errors=errors,
+        )
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask for fresh credentials when authentication fails."""
+        entry = self._get_reauth_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            merged = {**entry.data, **user_input}
+            errors = await self._validate(merged)
+            if not errors:
+                return self.async_update_reload_and_abort(
+                    entry, data_updates=user_input
+                )
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_REAUTH_SCHEMA, {CONF_USERNAME: entry.data.get(CONF_USERNAME)}
+            ),
+            errors=errors,
+        )
