@@ -14,10 +14,12 @@ SPEED_LOW = "low"
 SPEED_MEDIUM = "medium"
 SPEED_HIGH = "high"
 
-# Preset mode labels shown to the user and forwarded to Google Home.
-PRESET_LOW = "low"
-PRESET_MEDIUM = "medium"
-PRESET_HIGH = "high"
+# Preset mode labels shown to the user (and forwarded verbatim to Google Home,
+# which does not use Home Assistant entity translations). Kept in French on
+# purpose so Google Home displays them in French.
+PRESET_LOW = "1 - Bas"
+PRESET_MEDIUM = "2 - Normal"
+PRESET_HIGH = "3 - Fort"
 PRESET_MODES = [PRESET_LOW, PRESET_MEDIUM, PRESET_HIGH]
 
 PRESET_TO_SPEED = {
