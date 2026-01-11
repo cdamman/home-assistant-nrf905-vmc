@@ -16,7 +16,7 @@ from .models import Nrf905ConfigEntry, Nrf905Runtime
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.FAN, Platform.NUMBER]
+PLATFORMS: list[Platform] = [Platform.FAN, Platform.NUMBER, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: Nrf905ConfigEntry) -> bool:

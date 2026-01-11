@@ -44,6 +44,11 @@
       "timer_duration": {
         "name": "Durée du minuteur"
       }
+    },
+    "sensor": {
+      "timer_remaining": {
+        "name": "Minuteur restant"
+      }
     }
   }
 }
