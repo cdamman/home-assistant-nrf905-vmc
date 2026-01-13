@@ -11,7 +11,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import Nrf905Api, Nrf905ApiError, Nrf905AuthError
-from .const import DOMAIN, SCAN_INTERVAL
+from .const import DOMAIN, MAX_UPDATE_FAILURES, SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,11 +30,25 @@ class Nrf905Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             config_entry=entry,
         )
         self.api = api
+        self._failure_count = 0
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
-            return await self.api.async_get_status()
+            data = await self.api.async_get_status()
         except Nrf905AuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except Nrf905ApiError as err:
+            self._failure_count += 1
+            # Tolerate a few transient errors: keep the last known state (and
+            # stay quiet in the logs) until MAX_UPDATE_FAILURES in a row.
+            if self._failure_count < MAX_UPDATE_FAILURES and self.data is not None:
+                _LOGGER.debug(
+                    "Poll failed (%s/%s), keeping last known state: %s",
+                    self._failure_count,
+                    MAX_UPDATE_FAILURES,
+                    err,
+                )
+                return self.data
             raise UpdateFailed(str(err)) from err
+        self._failure_count = 0
+        return data

@@ -36,3 +36,7 @@ MAX_TIMER_MINUTES = 240
 
 # Status is polled from the device.
 SCAN_INTERVAL = timedelta(seconds=30)
+
+# Consecutive failed polls tolerated before the entities go unavailable (and an
+# error is logged). Below this, the last known state is kept.
+MAX_UPDATE_FAILURES = 3
