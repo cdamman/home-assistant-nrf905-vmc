@@ -29,6 +29,13 @@ PRESET_TO_SPEED = {
 }
 SPEED_TO_PRESET = {speed: preset for preset, speed in PRESET_TO_SPEED.items()}
 
+# Approximate electrical power draw for each speed, in watts.
+POWER_BY_SPEED = {
+    SPEED_LOW: 13.0,
+    SPEED_MEDIUM: 28.0,
+    SPEED_HIGH: 58.5,
+}
+
 # Timer defaults (auto-revert delay applied by the "on" boost command).
 DEFAULT_TIMER_MINUTES = 30
 MIN_TIMER_MINUTES = 1

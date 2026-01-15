@@ -48,6 +48,12 @@
     "sensor": {
       "timer_remaining": {
         "name": "Timer remaining"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "energy_today": {
+        "name": "Energy today"
       }
     }
   }
