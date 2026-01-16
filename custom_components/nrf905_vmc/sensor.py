@@ -20,6 +20,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    EntityCategory,
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTime,
@@ -165,6 +166,7 @@ class Nrf905EnergyToday(CoordinatorEntity[Nrf905Coordinator], RestoreSensor):
     _attr_has_entity_name = True
     _attr_translation_key = "energy_today"
     _attr_icon = "mdi:lightning-bolt"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING

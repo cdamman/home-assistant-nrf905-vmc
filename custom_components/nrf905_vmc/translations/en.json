@@ -50,10 +50,10 @@
         "name": "Timer remaining"
       },
       "power": {
-        "name": "Power"
+        "name": "Current consumption"
       },
       "energy_today": {
-        "name": "Energy today"
+        "name": "Today's consumption"
       }
     }
   }

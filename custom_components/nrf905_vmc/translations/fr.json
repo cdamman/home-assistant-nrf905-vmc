@@ -50,10 +50,10 @@
         "name": "Minuteur restant"
       },
       "power": {
-        "name": "Puissance"
+        "name": "Consommation actuelle"
       },
       "energy_today": {
-        "name": "Énergie du jour"
+        "name": "Consommation d'aujourd'hui"
       }
     }
   }
