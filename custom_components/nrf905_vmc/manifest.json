@@ -1,11 +1,12 @@
 {
   "domain": "nrf905_vmc",
   "name": "nRF905 VMC",
-  "codeowners": ["@corentin"],
+  "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/corentin/nrf905_vmc",
+  "documentation": "https://github.com/cdamman/home-assistant-nrf905-vmc",
   "integration_type": "device",
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/cdamman/home-assistant-nrf905-vmc/issues",
   "requirements": [],
   "version": "1.0.0"
 }
