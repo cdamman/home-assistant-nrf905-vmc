@@ -23,8 +23,8 @@ integration talks to: <https://github.com/eelcohn/nRF905-API>
 - **"Timer duration" number**: delay in minutes (default 30, 1–240), kept
   across restarts.
 - **"Timer remaining" sensor**: countdown driven by the device `timer` flag.
-- **"Current consumption" sensor** (power, W): 13 / 28 / 58.5 W depending on the
-  speed.
+- **"Current consumption" sensor** (power, W): derived from the speed, using the
+  **configurable** power draw of each speed (13 / 28 / 58.5 W by default).
 - **"Today's consumption" sensor** (energy, kWh, diagnostic): integrated from
   the power, reset at local midnight and restored across restarts.
 - **Flicker-free** on/off tile in Google Home (optimistic state) and **error
@@ -76,6 +76,28 @@ Then add the *nRF905 VMC* integration and enter the IP address, username and
 password:
 
 [![Open your Home Assistant instance and start setting up a new integration.][config-flow-badge]][config-flow-start]
+
+## Configuration
+
+### Power consumption
+
+The nRF905 bridge does not report how much the unit draws, so the *Current
+consumption* and *Today's consumption* sensors derive it from the power of each
+speed. The defaults are the values of the unit this integration was written
+against:
+
+| Speed | Default power |
+| --- | --- |
+| 1 - Bas | 13 W |
+| 2 - Normal | 28 W |
+| 3 - Fort | 58.5 W |
+
+If your unit differs, enter its own values in **Settings → Devices & services →
+nRF905 VMC → Configure**. The entry reloads immediately and both sensors pick up
+the new figures — today's accumulated energy is kept, so only the consumption
+from that point on is counted at the new rate.
+
+Values are per config entry, so several units can each have their own.
 
 ## Development
 

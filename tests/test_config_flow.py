@@ -1,10 +1,11 @@
-"""Tests for the nRF905 VMC config flow (user, reconfigure, reauth)."""
+"""Tests for the nRF905 VMC config flow (user, reconfigure, reauth, options)."""
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
-from homeassistant.config_entries import SOURCE_USER
+from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -12,9 +13,24 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.nrf905_vmc.api import Nrf905ApiError, Nrf905AuthError
-from custom_components.nrf905_vmc.const import DOMAIN
+from custom_components.nrf905_vmc.const import (
+    CONF_POWER_HIGH,
+    CONF_POWER_LOW,
+    CONF_POWER_MEDIUM,
+    DEFAULT_POWER_BY_SPEED,
+    DOMAIN,
+    SPEED_HIGH,
+    SPEED_LOW,
+    SPEED_MEDIUM,
+)
 
-from .conftest import HOST, PASSWORD, USERNAME, setup_integration
+from .conftest import (
+    HOST,
+    PASSWORD,
+    POWER_SENSOR_ENTITY_ID,
+    USERNAME,
+    setup_integration,
+)
 
 USER_INPUT = {
     CONF_HOST: HOST,
@@ -206,3 +222,72 @@ async def test_reauth_invalid_credentials(
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "invalid_auth"}
     assert mock_config_entry.data[CONF_PASSWORD] == PASSWORD
+
+
+async def test_options_flow_stores_the_power_values(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """The three power values are written to the entry options."""
+    await setup_integration(hass, mock_config_entry)
+
+    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_POWER_LOW: 15, CONF_POWER_MEDIUM: 30, CONF_POWER_HIGH: 62.5},
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert mock_config_entry.options == {
+        CONF_POWER_LOW: 15,
+        CONF_POWER_MEDIUM: 30,
+        CONF_POWER_HIGH: 62.5,
+    }
+
+
+async def test_options_flow_suggests_the_current_values(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """The form opens on the values already in use, defaults included."""
+    await setup_integration(hass, mock_config_entry, options={CONF_POWER_HIGH: 62.5})
+
+    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
+
+    suggested = {
+        key.schema: key.description["suggested_value"]
+        for key in result["data_schema"].schema
+    }
+    assert suggested == {
+        CONF_POWER_LOW: DEFAULT_POWER_BY_SPEED[SPEED_LOW],
+        CONF_POWER_MEDIUM: DEFAULT_POWER_BY_SPEED[SPEED_MEDIUM],
+        CONF_POWER_HIGH: 62.5,
+    }
+
+
+async def test_options_flow_reloads_the_entry(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+    device_status: dict[str, Any],
+) -> None:
+    """Saving new options takes effect without a restart."""
+    device_status["speed"] = SPEED_HIGH
+    await setup_integration(hass, mock_config_entry)
+    assert float(hass.states.get(POWER_SENSOR_ENTITY_ID).state) == 58.5
+
+    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
+    await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_POWER_LOW: 13, CONF_POWER_MEDIUM: 28, CONF_POWER_HIGH: 62.5},
+    )
+    await hass.async_block_till_done()
+
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+    assert float(hass.states.get(POWER_SENSOR_ENTITY_ID).state) == 62.5

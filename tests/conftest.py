@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -74,10 +74,14 @@ def mock_config_entry() -> MockConfigEntry:
 
 
 async def setup_integration(
-    hass: HomeAssistant, entry: MockConfigEntry
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    options: Mapping[str, Any] | None = None,
 ) -> MockConfigEntry:
-    """Add the entry to hass and set the integration up."""
+    """Add the entry to hass, optionally set its options, and set it up."""
     entry.add_to_hass(hass)
+    if options is not None:
+        hass.config_entries.async_update_entry(entry, options=dict(options))
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     return entry

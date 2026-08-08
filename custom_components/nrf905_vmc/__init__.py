@@ -11,7 +11,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import Nrf905Api
 from .const import DEFAULT_TIMER_MINUTES
 from .coordinator import Nrf905Coordinator
-from .models import Nrf905ConfigEntry, Nrf905Runtime
+from .models import Nrf905ConfigEntry, Nrf905Runtime, power_by_speed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,10 +35,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: Nrf905ConfigEntry) -> bo
         api=api,
         coordinator=coordinator,
         timer_minutes=DEFAULT_TIMER_MINUTES,
+        power_by_speed=power_by_speed(entry.options),
     )
+
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def _async_options_updated(hass: HomeAssistant, entry: Nrf905ConfigEntry) -> None:
+    """Reload the entry so the new power values reach the sensors."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: Nrf905ConfigEntry) -> bool:

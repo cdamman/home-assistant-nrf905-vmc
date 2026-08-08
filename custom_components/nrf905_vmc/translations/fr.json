@@ -39,6 +39,19 @@
       "reconfigure_successful": "La reconfiguration a réussi."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Consommation électrique",
+        "description": "L'appareil ne remonte pas sa consommation : les capteurs la déduisent de la puissance de chaque vitesse. Saisissez les valeurs de votre unité, en watts.",
+        "data": {
+          "power_low": "Puissance en vitesse 1 - Bas",
+          "power_medium": "Puissance en vitesse 2 - Normal",
+          "power_high": "Puissance en vitesse 3 - Fort"
+        }
+      }
+    }
+  },
   "entity": {
     "number": {
       "timer_duration": {
