@@ -6,7 +6,6 @@ import logging
 
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
-
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import Nrf905Api

@@ -9,8 +9,8 @@ truth for the sensor.
 
 from __future__ import annotations
 
-import math
 from datetime import date, datetime, timedelta
+import math
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -125,7 +125,7 @@ class Nrf905TimerRemaining(CoordinatorEntity[Nrf905Coordinator], SensorEntity):
         if self._end is None:
             return None
         remaining = (self._end - dt_util.utcnow()).total_seconds()
-        return max(0, int(math.ceil(remaining / 60)))
+        return max(0, math.ceil(remaining / 60))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

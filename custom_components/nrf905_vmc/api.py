@@ -70,7 +70,7 @@ class Nrf905Api:
             if err.status in (401, 403):
                 raise Nrf905AuthError(str(err)) from err
             raise Nrf905ApiError(str(err)) from err
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (TimeoutError, aiohttp.ClientError) as err:
             raise Nrf905ConnectionError(str(err)) from err
 
     async def async_get_status(self) -> dict[str, Any]:
