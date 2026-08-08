@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Mapping
+import logging
 from typing import Any
-
-import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import voluptuous as vol
 
 from .api import Nrf905Api, Nrf905ApiError, Nrf905AuthError
 from .const import DOMAIN
@@ -51,7 +50,7 @@ class Nrf905ConfigFlow(ConfigFlow, domain=DOMAIN):
             errors["base"] = "invalid_auth"
         except Nrf905ApiError:
             errors["base"] = "cannot_connect"
-        except Exception:  # noqa: BLE001
+        except Exception:
             _LOGGER.exception("Unexpected error validating nRF905 VMC")
             errors["base"] = "unknown"
         return errors

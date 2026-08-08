@@ -1,0 +1,42 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+norecursedirs = [".git", ".venv", "venv"]
+addopts = "--strict-markers --strict-config"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes
+  "I",    # isort
+  "B",    # flake8-bugbear
+  "BLE",  # flake8-blind-except
+  "C4",   # flake8-comprehensions
+  "D",    # pydocstyle
+  "UP",   # pyupgrade
+  "RUF",  # ruff-specific rules
+  "SIM",  # flake8-simplify
+  "TRY",  # tryceratops
+]
+ignore = [
+  "D102",    # inherited entity properties/methods document themselves
+  "D105",    # magic methods
+  "D107",    # __init__
+  "D203",    # incompatible with D211
+  "D213",    # incompatible with D212
+  "TRY003",  # long messages outside the exception class are fine here
+  "TRY301",  # raising inside try is the clearest way to map HTTP statuses
+]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components", "tests"]
+combine-as-imports = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"

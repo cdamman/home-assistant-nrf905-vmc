@@ -19,9 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 class Nrf905Coordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Fetch the current ventilation status on a schedule."""
 
-    def __init__(
-        self, hass: HomeAssistant, entry: ConfigEntry, api: Nrf905Api
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: Nrf905Api) -> None:
         super().__init__(
             hass,
             _LOGGER,

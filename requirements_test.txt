@@ -1,0 +1,7 @@
+# Test toolchain for the nRF905 VMC custom integration.
+#
+# pytest-homeassistant-custom-component pins a matching Home Assistant release
+# together with pytest, pytest-asyncio, pytest-cov, freezegun and the aiohttp
+# test helpers, so it is the single source of truth for the runtime under test.
+pytest-homeassistant-custom-component==0.13.316
+ruff==0.16.2
