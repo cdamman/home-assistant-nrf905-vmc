@@ -34,15 +34,41 @@ integration talks to: <https://github.com/eelcohn/nRF905-API>
 
 ### With HACS (recommended)
 
-Add this repository to HACS as a custom repository of type *Integration*, then
-install *nRF905 VMC* and restart Home Assistant:
+This integration is not in the HACS default store, so it has to be added as a
+**custom repository**. The quickest way is this button, which opens the
+repository straight inside your own HACS:
 
 [![Open your Home Assistant instance and open this repository inside HACS.][hacs-repository-badge]][hacs-repository]
 
+#### Adding the repository by URL
+
+If the button does not work — no [My Home Assistant][my-ha] redirect
+configured, a hardened network, or HACS opened from a phone — add the URL by
+hand instead:
+
+1. In Home Assistant, go to **HACS** in the sidebar.
+2. Open the **⋮** menu at the top right and choose **Custom repositories**.
+3. Paste this URL in the *Repository* field:
+
+   ```text
+   https://github.com/cdamman/home-assistant-nrf905-vmc
+   ```
+
+4. Pick **Integration** as the *Type*, then select **Add**.
+5. Close the dialog, search for **nRF905 VMC** in HACS and select
+   **Download**.
+6. Restart Home Assistant.
+
+The repository then behaves like any other HACS integration: new releases show
+up as updates, and you can remove it again from the same *Custom repositories*
+dialog.
+
 ### Manually
 
-Copy `custom_components/nrf905_vmc/` into your Home Assistant
-`config/custom_components/` folder and restart.
+Without HACS, copy `custom_components/nrf905_vmc/` into your Home Assistant
+`config/custom_components/` folder and restart. Updates then have to be copied
+over by hand — download the folder again from the
+[latest release][releases].
 
 ### Add the integration
 
@@ -88,3 +114,4 @@ eelcohn for the nRF905 device API.
 [hacs-repository]: https://my.home-assistant.io/redirect/hacs_repository/?owner=cdamman&repository=home-assistant-nrf905-vmc&category=integration
 [config-flow-start]: https://my.home-assistant.io/redirect/config_flow_start/?domain=nrf905_vmc
 [phcc]: https://github.com/MatthewFlamm/pytest-homeassistant-custom-component
+[my-ha]: https://my.home-assistant.io/
