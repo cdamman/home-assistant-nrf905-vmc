@@ -29,12 +29,29 @@ PRESET_TO_SPEED = {
 }
 SPEED_TO_PRESET = {speed: preset for preset, speed in PRESET_TO_SPEED.items()}
 
-# Approximate electrical power draw for each speed, in watts.
-POWER_BY_SPEED = {
+# Electrical power draw for each speed, in watts. These are the values of the
+# unit this integration was written against; other units differ, so they are
+# only defaults and can be changed from the integration options.
+DEFAULT_POWER_BY_SPEED = {
     SPEED_LOW: 13.0,
     SPEED_MEDIUM: 28.0,
     SPEED_HIGH: 58.5,
 }
+
+# Option keys holding the per-speed power draw.
+CONF_POWER_LOW = "power_low"
+CONF_POWER_MEDIUM = "power_medium"
+CONF_POWER_HIGH = "power_high"
+
+POWER_OPTION_BY_SPEED = {
+    SPEED_LOW: CONF_POWER_LOW,
+    SPEED_MEDIUM: CONF_POWER_MEDIUM,
+    SPEED_HIGH: CONF_POWER_HIGH,
+}
+
+# Bounds accepted for a configured power value, in watts.
+MIN_POWER_WATTS = 0.0
+MAX_POWER_WATTS = 10000.0
 
 # Timer defaults (auto-revert delay applied by the "on" boost command).
 DEFAULT_TIMER_MINUTES = 30

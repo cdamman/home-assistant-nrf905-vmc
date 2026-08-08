@@ -34,7 +34,6 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import POWER_BY_SPEED
 from .coordinator import Nrf905Coordinator
 from .entity import build_device_info
 from .fan import _parse_speed
@@ -133,7 +132,11 @@ class Nrf905TimerRemaining(CoordinatorEntity[Nrf905Coordinator], SensorEntity):
 
 
 class Nrf905Power(CoordinatorEntity[Nrf905Coordinator], SensorEntity):
-    """Instantaneous electrical power, derived from the current speed."""
+    """Instantaneous electrical power, derived from the current speed.
+
+    The device reports no consumption, so the value comes from the per-speed
+    power draw configured in the integration options.
+    """
 
     _attr_has_entity_name = True
     _attr_translation_key = "power"
@@ -144,6 +147,7 @@ class Nrf905Power(CoordinatorEntity[Nrf905Coordinator], SensorEntity):
 
     def __init__(self, entry: Nrf905ConfigEntry) -> None:
         super().__init__(entry.runtime_data.coordinator)
+        self._runtime = entry.runtime_data
         self._attr_unique_id = f"{entry.entry_id}_power"
         self._attr_device_info = build_device_info(entry)
 
@@ -152,7 +156,7 @@ class Nrf905Power(CoordinatorEntity[Nrf905Coordinator], SensorEntity):
         speed = _parse_speed(self.coordinator.data or {})
         if speed is None:
             return None
-        return POWER_BY_SPEED.get(speed)
+        return self._runtime.power_by_speed.get(speed)
 
 
 class Nrf905EnergyToday(CoordinatorEntity[Nrf905Coordinator], RestoreSensor):
@@ -174,6 +178,7 @@ class Nrf905EnergyToday(CoordinatorEntity[Nrf905Coordinator], RestoreSensor):
 
     def __init__(self, entry: Nrf905ConfigEntry) -> None:
         super().__init__(entry.runtime_data.coordinator)
+        self._runtime = entry.runtime_data
         self._attr_unique_id = f"{entry.entry_id}_energy_today"
         self._attr_device_info = build_device_info(entry)
         self._energy_wh: float = 0.0
@@ -183,7 +188,9 @@ class Nrf905EnergyToday(CoordinatorEntity[Nrf905Coordinator], RestoreSensor):
 
     def _current_power(self) -> float:
         speed = _parse_speed(self.coordinator.data or {})
-        return POWER_BY_SPEED.get(speed, 0.0) if speed is not None else 0.0
+        if speed is None:
+            return 0.0
+        return self._runtime.power_by_speed.get(speed, 0.0)
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

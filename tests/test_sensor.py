@@ -32,7 +32,10 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.nrf905_vmc.const import (
-    POWER_BY_SPEED,
+    CONF_POWER_HIGH,
+    CONF_POWER_LOW,
+    CONF_POWER_MEDIUM,
+    DEFAULT_POWER_BY_SPEED,
     SCAN_INTERVAL,
     SPEED_HIGH,
     SPEED_LOW,
@@ -220,7 +223,7 @@ async def test_power_matches_speed(
     await setup_integration(hass, mock_config_entry)
 
     state = hass.states.get(POWER_SENSOR_ENTITY_ID)
-    assert float(state.state) == POWER_BY_SPEED[speed]
+    assert float(state.state) == DEFAULT_POWER_BY_SPEED[speed]
     assert state.attributes[ATTR_DEVICE_CLASS] == SensorDeviceClass.POWER
     assert state.attributes[ATTR_STATE_CLASS] == SensorStateClass.MEASUREMENT
     assert state.attributes[ATTR_UNIT_OF_MEASUREMENT] == UnitOfPower.WATT
@@ -237,6 +240,46 @@ async def test_power_unknown_for_unparseable_speed(
     await setup_integration(hass, mock_config_entry)
 
     assert hass.states.get(POWER_SENSOR_ENTITY_ID).state == STATE_UNKNOWN
+
+
+@pytest.mark.parametrize(
+    ("speed", "option", "expected"),
+    [
+        (SPEED_LOW, CONF_POWER_LOW, 9.0),
+        (SPEED_MEDIUM, CONF_POWER_MEDIUM, 21.5),
+        (SPEED_HIGH, CONF_POWER_HIGH, 75.0),
+    ],
+)
+async def test_power_uses_the_configured_values(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+    device_status: dict[str, Any],
+    speed: str,
+    option: str,
+    expected: float,
+) -> None:
+    """A unit with a different power draw reports its own values."""
+    device_status["speed"] = speed
+    await setup_integration(hass, mock_config_entry, options={option: expected})
+
+    assert float(hass.states.get(POWER_SENSOR_ENTITY_ID).state) == expected
+
+
+async def test_power_keeps_defaults_for_unconfigured_speeds(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+    device_status: dict[str, Any],
+) -> None:
+    """Configuring one speed leaves the others on their default."""
+    device_status["speed"] = SPEED_MEDIUM
+    await setup_integration(hass, mock_config_entry, options={CONF_POWER_HIGH: 75.0})
+
+    assert (
+        float(hass.states.get(POWER_SENSOR_ENTITY_ID).state)
+        == DEFAULT_POWER_BY_SPEED[SPEED_MEDIUM]
+    )
 
 
 async def test_power_follows_speed_changes(
@@ -299,6 +342,62 @@ async def test_energy_integrates_power_over_time(
 
     assert float(hass.states.get(ENERGY_SENSOR_ENTITY_ID).state) == pytest.approx(
         0.028, abs=1e-3
+    )
+
+
+async def test_energy_integrates_the_configured_power(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+    device_status: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """The daily total is built from the configured power, not the default."""
+    device_status["speed"] = SPEED_HIGH
+    await setup_integration(hass, mock_config_entry, options={CONF_POWER_HIGH: 100.0})
+
+    freezer.tick(timedelta(hours=1))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert float(hass.states.get(ENERGY_SENSOR_ENTITY_ID).state) == pytest.approx(
+        0.1, abs=1e-3
+    )
+
+
+async def test_energy_survives_a_power_reconfiguration(
+    hass: HomeAssistant,
+    mock_api: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+    device_status: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Changing the power keeps today's total and applies from that point on."""
+    device_status["speed"] = SPEED_HIGH
+    await setup_integration(hass, mock_config_entry, options={CONF_POWER_HIGH: 100.0})
+
+    freezer.tick(timedelta(hours=1))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert float(hass.states.get(ENERGY_SENSOR_ENTITY_ID).state) == pytest.approx(
+        0.1, abs=1e-3
+    )
+
+    # Halve the power; the entry reloads and integration resumes from the total.
+    hass.config_entries.async_update_entry(
+        mock_config_entry, options={CONF_POWER_HIGH: 50.0}
+    )
+    await hass.async_block_till_done()
+    assert float(hass.states.get(ENERGY_SENSOR_ENTITY_ID).state) == pytest.approx(
+        0.1, abs=1e-3
+    )
+
+    freezer.tick(timedelta(hours=1))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert float(hass.states.get(ENERGY_SENSOR_ENTITY_ID).state) == pytest.approx(
+        0.15, abs=1e-3
     )
 
 

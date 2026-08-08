@@ -39,6 +39,19 @@
       "reconfigure_successful": "Reconfiguration was successful."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Power consumption",
+        "description": "The device does not report its consumption, so the sensors derive it from the power draw of each speed. Enter the values of your unit, in watts.",
+        "data": {
+          "power_low": "Power at speed 1 - Bas",
+          "power_medium": "Power at speed 2 - Normal",
+          "power_high": "Power at speed 3 - Fort"
+        }
+      }
+    }
+  },
   "entity": {
     "number": {
       "timer_duration": {

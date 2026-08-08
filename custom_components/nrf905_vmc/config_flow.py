@@ -1,4 +1,4 @@
-"""Config flow for nRF905 VMC (setup, reconfigure and reauth)."""
+"""Config flow for nRF905 VMC (setup, reconfigure, reauth and options)."""
 
 from __future__ import annotations
 
@@ -6,13 +6,31 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, UnitOfPower
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+)
 import voluptuous as vol
 
 from .api import Nrf905Api, Nrf905ApiError, Nrf905AuthError
-from .const import DOMAIN
+from .const import (
+    DEFAULT_POWER_BY_SPEED,
+    DOMAIN,
+    MAX_POWER_WATTS,
+    MIN_POWER_WATTS,
+    POWER_OPTION_BY_SPEED,
+)
+from .models import power_by_speed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,11 +49,35 @@ STEP_REAUTH_SCHEMA = vol.Schema(
     }
 )
 
+# One watt field per speed. The device does not report its consumption, so the
+# sensors derive it from these values; they default to the unit this
+# integration was written against.
+STEP_OPTIONS_SCHEMA = vol.Schema(
+    {
+        vol.Required(key, default=DEFAULT_POWER_BY_SPEED[speed]): NumberSelector(
+            NumberSelectorConfig(
+                min=MIN_POWER_WATTS,
+                max=MAX_POWER_WATTS,
+                step=0.1,
+                mode=NumberSelectorMode.BOX,
+                unit_of_measurement=UnitOfPower.WATT,
+            )
+        )
+        for speed, key in POWER_OPTION_BY_SPEED.items()
+    }
+)
+
 
 class Nrf905ConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle the configuration flow."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(entry: ConfigEntry) -> Nrf905OptionsFlow:
+        """Return the options flow handler (per-speed power draw)."""
+        return Nrf905OptionsFlow()
 
     async def _validate(self, data: Mapping[str, Any]) -> dict[str, str]:
         """Try to reach the device; return an errors dict (empty on success)."""
@@ -115,4 +157,27 @@ class Nrf905ConfigFlow(ConfigFlow, domain=DOMAIN):
                 STEP_REAUTH_SCHEMA, {CONF_USERNAME: entry.data.get(CONF_USERNAME)}
             ),
             errors=errors,
+        )
+
+
+class Nrf905OptionsFlow(OptionsFlow):
+    """Let the user enter the power draw of each ventilation speed."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show (and store) one power value per speed, in watts."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_OPTIONS_SCHEMA,
+                {
+                    POWER_OPTION_BY_SPEED[speed]: watts
+                    for speed, watts in power_by_speed(
+                        self.config_entry.options
+                    ).items()
+                },
+            ),
         )
