@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to (re)build the asset for"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  DOMAIN: nrf905_vmc
+
+jobs:
+  asset:
+    name: Publish the HACS zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+
+      - name: Derive the version from the tag
+        id: version
+        env:
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          # Home Assistant refuses to load an integration whose manifest
+          # version it cannot parse, so reject a bad tag here rather than
+          # shipping an unloadable zip.
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+)*([-.+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$TAG' is not a usable version number" >&2
+            exit 1
+          fi
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+
+      - name: Stamp the version into the manifest
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+
+          path = pathlib.Path("custom_components", os.environ["DOMAIN"], "manifest.json")
+          manifest = json.loads(path.read_text())
+          manifest["version"] = os.environ["VERSION"]
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+          cat "custom_components/$DOMAIN/manifest.json"
+
+      - name: Build the zip
+        run: |
+          set -euo pipefail
+          # HACS extracts this archive straight into
+          # `config/custom_components/<domain>/`, so the integration files must
+          # sit at the root of the zip — no `custom_components/` prefix.
+          cd "custom_components/$DOMAIN"
+          zip -r "$RUNNER_TEMP/$DOMAIN.zip" . -x '*__pycache__*' '*.pyc'
+
+      - name: Check the archive layout
+        run: |
+          set -euo pipefail
+          unzip -l "$RUNNER_TEMP/$DOMAIN.zip"
+          unzip -p "$RUNNER_TEMP/$DOMAIN.zip" manifest.json >/dev/null
+          test "$(unzip -p "$RUNNER_TEMP/$DOMAIN.zip" manifest.json \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')" \
+            = "${{ steps.version.outputs.version }}"
+
+      - name: Attach it to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: gh release upload "$TAG" "$RUNNER_TEMP/$DOMAIN.zip" --clobber

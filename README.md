@@ -65,10 +65,15 @@ dialog.
 
 ### Manually
 
-Without HACS, copy `custom_components/nrf905_vmc/` into your Home Assistant
-`config/custom_components/` folder and restart. Updates then have to be copied
-over by hand — download the folder again from the
-[latest release][releases].
+Without HACS, download `nrf905_vmc.zip` from the [latest release][releases],
+create a `nrf905_vmc` folder inside your Home Assistant
+`config/custom_components/` folder, extract the archive into it and restart.
+Updates have to be done the same way by hand.
+
+Installing from a checkout of the repository works too, but the `version` in
+`custom_components/nrf905_vmc/manifest.json` is the `0.0.0` placeholder there:
+the real version is stamped into the release archive (see
+[Releasing](#releasing)), so Home Assistant will report `0.0.0`.
 
 ### Add the integration
 
@@ -113,6 +118,35 @@ pytest --cov=custom_components.nrf905_vmc --cov-report=term-missing
 ruff check custom_components tests
 ruff format --check custom_components tests
 ```
+
+### Releasing
+
+`manifest.json` in the repository is not the version users get — the `version`
+key there is a fixed `0.0.0` placeholder, and the release tag is the source of
+truth. It is never bumped by hand, so it cannot drift out of sync with the
+tags.
+
+Publishing a GitHub release runs the *Release* workflow, which checks out the
+tag, writes the tag (minus a leading `v`) into `manifest.json`, zips the
+contents of `custom_components/nrf905_vmc/` and attaches the archive to the
+release as `nrf905_vmc.zip`. `hacs.json` sets `zip_release`, so HACS downloads
+that asset instead of the repository source: tagging `v1.2.0` is all it takes
+for Home Assistant to report version `1.2.0`.
+
+So the release process is just: tag, publish the release, done. A tag that is
+not a usable version number (`nightly`, say) fails the workflow instead of
+shipping an integration Home Assistant cannot load. The workflow can also be
+re-run by hand from the Actions tab against an existing tag, which is how a
+release published before this workflow existed gets its asset.
+
+The archive holds the integration files at its root, with no
+`custom_components/` prefix — that is what HACS expects, since it extracts
+straight into `config/custom_components/nrf905_vmc/`.
+
+The zip only comes into play for a release. Installing the default branch from
+HACS still copies the repository source, placeholder included, so a reported
+version of `0.0.0` is the expected symptom of running `main` rather than a
+release.
 
 ## Credits
 
