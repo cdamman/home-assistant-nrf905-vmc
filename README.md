@@ -7,6 +7,11 @@
 [![Validate][validate-badge]][validate-workflow]
 [![License][license-badge]][license]
 
+> [!WARNING]
+> **This project is deprecated** and replaced by
+> [ESPHome-Zehnder-RF](https://github.com/cdamman/ESPHome-Zehnder-RF). No
+> further development will happen here — please migrate to the new project.
+
 Home Assistant integration to control a mechanical ventilation unit (VMC)
 through the nRF905 HTTP bridge.
 
